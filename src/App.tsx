@@ -24,6 +24,11 @@ import { MultiplayerModal } from './components/MultiplayerModal';
 import { PropertyModal } from './components/PropertyModal';
 import { SettingsModal } from './components/SettingsModal';
 import { TitleScreen } from './components/TitleScreen';
+import {
+  isCompactLandscapeViewport,
+  isMobileTouchDevice,
+  requestLandscapeOrientation,
+} from './utils/orientation';
 
 const INITIAL_SETTINGS: GameSettings = {
   graphicsPreset: 'high',
@@ -171,6 +176,7 @@ export default function App() {
   const [lifeSimTab, setLifeSimTab] = useState<LifeSimTab>('phone');
   const [npcDialog, setNpcDialog] = useState<NpcDialogState | null>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [compactLandscape, setCompactLandscape] = useState<boolean>(() => isCompactLandscapeViewport());
 
   const closeAllOverlays = useCallback(() => {
     setShowModes(false);
@@ -185,11 +191,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const hasTouch =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-    setIsTouchDevice(hasTouch);
+    const syncViewportState = () => {
+      setIsTouchDevice(isMobileTouchDevice());
+      setCompactLandscape(isCompactLandscapeViewport());
+    };
+    const onOrientationChange = () => {
+      syncViewportState();
+      requestAnimationFrame(syncViewportState);
+      window.setTimeout(syncViewportState, 160);
+    };
+
+    syncViewportState();
+    window.addEventListener('resize', syncViewportState);
+    window.addEventListener('orientationchange', onOrientationChange);
+    window.visualViewport?.addEventListener('resize', syncViewportState);
+    window.screen?.orientation?.addEventListener('change', onOrientationChange);
+
+    return () => {
+      window.removeEventListener('resize', syncViewportState);
+      window.removeEventListener('orientationchange', onOrientationChange);
+      window.visualViewport?.removeEventListener('resize', syncViewportState);
+      window.screen?.orientation?.removeEventListener('change', onOrientationChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -303,6 +326,7 @@ export default function App() {
     const engine = engineRef.current;
     const saved = loadLocalSave();
     if (!engine || !saved) return;
+    void requestLandscapeOrientation();
     engine.applySaveData(saved);
     setSettings((prev) => ({
       ...prev,
@@ -317,6 +341,7 @@ export default function App() {
     (mode: GameMode) => {
       const engine = engineRef.current;
       if (!engine) return;
+      void requestLandscapeOrientation();
       const spec = VEHICLE_CATALOG.find((v) => v.id === starterVehicleId) || VEHICLE_CATALOG[0];
       if (starterVehicleId !== 'bmw_m4') {
         void engine.spawnAndSelectVehicle(spec.id, spec.defaultColor);
@@ -342,6 +367,7 @@ export default function App() {
 
   const handleOpenGarage = useCallback(() => {
     closeAllOverlays();
+    void requestLandscapeOrientation();
     if (hud.screen === 'title') {
       engineRef.current?.startGame();
     }
@@ -396,6 +422,7 @@ export default function App() {
           hud={hud}
           settings={settings}
           showTouchControls={showTouchControls}
+          compactLandscape={compactLandscape}
           onOpenGarage={handleOpenGarage}
           onOpenModes={() => {
             closeAllOverlays();
@@ -449,6 +476,7 @@ export default function App() {
         <MobileControls
           inVehicle={hud.inVehicle}
           nearVehicle={!!hud.nearVehicleName}
+          compactLandscape={compactLandscape}
           touchInput={engineRef.current.touchInput}
           onEnterExit={() => engineRef.current?.toggleEnterExitVehicle()}
           onCycleCamera={() => engineRef.current?.cycleCameraMode()}

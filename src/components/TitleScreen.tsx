@@ -65,13 +65,13 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
   const activeSpec = VEHICLE_CATALOG.find((v) => v.id === selectedVehicleId) || VEHICLE_CATALOG[0];
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col justify-between p-5 md:p-9 pointer-events-none bg-gradient-to-r from-zinc-950/92 via-zinc-950/50 to-transparent overflow-y-auto">
+    <div className="fixed inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 md:p-9 landscape-compact-title pointer-events-none bg-gradient-to-r from-zinc-950/92 via-zinc-950/50 to-transparent overflow-y-auto">
       {/* Top Header Row */}
       <div className="flex items-start justify-between gap-3 pointer-events-auto">
         <div>
           <svg
             viewBox="0 0 460 74"
-            className="w-[290px] sm:w-[400px] h-auto"
+            className="w-[220px] sm:w-[320px] lg:w-[400px] h-auto"
             aria-label="Apex Horizon Ultimate Realistic Edition"
           >
             <path d="M4 12 L24 12 L16 62 L4 62 Z" fill="#f59e0b" />
@@ -103,7 +103,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
 
         <button
           onClick={onOpenSettings}
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 rounded-lg text-sm font-medium text-zinc-200 transition-colors cursor-pointer whitespace-nowrap"
+          className="flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 rounded-lg text-xs sm:text-sm font-medium text-zinc-200 transition-colors cursor-pointer whitespace-nowrap"
         >
           <Settings className="w-4 h-4 text-amber-400" />
           <span>Settings</span>
@@ -111,8 +111,8 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       </div>
 
       {/* Main Left Column Selection & Actions */}
-      <div className="max-w-xl space-y-5 pointer-events-auto my-auto py-3">
-        <p className="text-sm text-zinc-300 leading-relaxed max-w-md">
+      <div className="max-w-xl space-y-3 sm:space-y-4 pointer-events-auto my-auto py-2">
+        <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed max-w-md hidden sm:block">
           Drive tuned performance machines across downtown, airport, highways, tunnels, and mountain roads. Own luxury villas, run city careers, evade police chases, and join online car meets.
         </p>
 
@@ -233,7 +233,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
       </div>
 
       {/* Control Hint */}
-      <div className="text-xs text-zinc-400 font-medium tracking-wide pointer-events-none">
+      <div className="text-xs text-zinc-400 font-medium tracking-wide pointer-events-none hidden md:block landscape-hide-kbd">
         WASD Move &amp; Drive · Space Jump / Handbrake · E Enter/Exit Car · F Interact / Enter Building · Tab Phone · G Garage
       </div>
     </div>

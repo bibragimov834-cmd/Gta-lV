@@ -137,10 +137,10 @@ export const GarageModal: React.FC<GarageModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-30 pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+    <div className="fixed inset-0 z-30 pointer-events-none flex flex-col justify-between safe-area-hud sm:p-5">
       {/* Top Perimeter Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="pointer-events-auto bg-zinc-950/90 border border-zinc-800 rounded-xl px-4 py-3 max-w-md shadow-xl">
+      <div className="flex flex-wrap items-start justify-between gap-2 sm:gap-3">
+        <div className="pointer-events-auto bg-zinc-950/90 border border-zinc-800 rounded-xl px-3 py-2 sm:px-4 sm:py-3 max-w-md shadow-xl">
           <div className="flex items-center gap-2 text-[11px] font-medium text-amber-400">
             <span>APEX SHOWROOM &amp; TUNING WORKSHOP</span>
             <span className="text-zinc-600">·</span>
@@ -264,7 +264,7 @@ export const GarageModal: React.FC<GarageModalProps> = ({
         </button>
 
         {!dockCollapsed && (
-          <div className="pointer-events-auto w-full max-w-5xl bg-zinc-950/94 border border-zinc-800 rounded-2xl p-3 sm:p-4 shadow-2xl space-y-2.5">
+          <div className="pointer-events-auto w-full max-w-5xl bg-zinc-950/94 border border-zinc-800 rounded-2xl p-2.5 sm:p-4 shadow-2xl space-y-2 landscape-garage-dock">
             {/* Workshop Tabs + Vehicle Selector Strip */}
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-zinc-800/80">
               <div className="flex flex-wrap gap-1">

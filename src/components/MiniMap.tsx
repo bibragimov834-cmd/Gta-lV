@@ -7,9 +7,16 @@ interface MiniMapProps {
   playerZ: number;
   playerHeading: number;
   entities: MiniMapEntity[];
+  compact?: boolean;
 }
 
-export const MiniMap: React.FC<MiniMapProps> = ({ playerX, playerZ, playerHeading, entities }) => {
+export const MiniMap: React.FC<MiniMapProps> = ({
+  playerX,
+  playerZ,
+  playerHeading,
+  entities,
+  compact = false,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -140,10 +147,12 @@ export const MiniMap: React.FC<MiniMapProps> = ({ playerX, playerZ, playerHeadin
     ctx.stroke();
   }, [playerX, playerZ, playerHeading, entities]);
 
+  const sizeClass = compact ? 'w-[100px] h-[100px]' : 'w-[126px] h-[126px] sm:w-[148px] sm:h-[148px]';
+
   return (
-    <div className="relative w-[148px] h-[148px] select-none">
-      <canvas ref={canvasRef} width={148} height={148} className="w-[148px] h-[148px] block" />
-      <span className="absolute top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-zinc-400">N</span>
+    <div className={`relative ${sizeClass} select-none shrink-0`}>
+      <canvas ref={canvasRef} width={148} height={148} className="w-full h-full block" />
+      <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] font-bold text-zinc-400">N</span>
     </div>
   );
 };

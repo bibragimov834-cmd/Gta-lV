@@ -121,6 +121,8 @@ export class GameEngine {
   private multiplayer: MultiplayerClient;
   private inGarage = false;
   private isSoftwareGl: boolean;
+  private resizeObserver: ResizeObserver | null = null;
+  private orientationTimers: number[] = [];
 
   private textures: ProceduralTextureSet;
   private world: CityWorld;
@@ -268,8 +270,8 @@ export class GameEngine {
       return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
     })();
 
-    const w = container.clientWidth || window.innerWidth;
-    const h = container.clientHeight || window.innerHeight;
+    const w = Math.max(1, container.clientWidth || window.innerWidth);
+    const h = Math.max(1, container.clientHeight || window.innerHeight);
 
     this.renderer = new THREE.WebGLRenderer({
       antialias: !this.isSoftwareGl,
@@ -278,7 +280,10 @@ export class GameEngine {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.06;
-    this.renderer.setSize(w, h);
+    this.renderer.setSize(w, h, false);
+    this.renderer.domElement.style.width = '100%';
+    this.renderer.domElement.style.height = '100%';
+    this.renderer.domElement.style.display = 'block';
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
 
@@ -497,6 +502,14 @@ export class GameEngine {
 
   private bindEvents() {
     window.addEventListener('resize', this.handleResize);
+    window.addEventListener('orientationchange', this.handleOrientationResize);
+    window.visualViewport?.addEventListener('resize', this.handleResize);
+    window.screen?.orientation?.addEventListener('change', this.handleOrientationResize);
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.handleResize());
+      this.resizeObserver.observe(this.container);
+    }
+
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('blur', this.handleBlur);
@@ -513,15 +526,32 @@ export class GameEngine {
     e.preventDefault();
   };
 
+  private handleOrientationResize = () => {
+    if (this.disposed) return;
+    this.handleResize();
+    requestAnimationFrame(() => {
+      if (!this.disposed) this.handleResize();
+    });
+    const t = window.setTimeout(() => {
+      if (!this.disposed) this.handleResize();
+    }, 150);
+    this.orientationTimers.push(t);
+  };
+
   private handleResize = () => {
     if (this.disposed) return;
-    const w = this.container.clientWidth || window.innerWidth;
-    const h = this.container.clientHeight || window.innerHeight;
-    this.camera.aspect = w / h;
+    const w = Math.max(1, this.container.clientWidth || window.innerWidth);
+    const h = Math.max(1, this.container.clientHeight || window.innerHeight);
+    const aspect = w / h;
+
+    this.camera.aspect = aspect;
+    this.camera.fov = aspect < 1 ? Math.min(82, (64 / Math.max(0.65, aspect)) * 0.78) : 64;
     this.camera.updateProjectionMatrix();
-    this.garage.camera.aspect = w / h;
+
+    this.garage.camera.aspect = aspect;
     this.garage.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
+
+    this.renderer.setSize(w, h, false);
     if (this.composer) this.composer.setSize(w, h);
     if (this.bloomPass) this.bloomPass.resolution.set(w, h);
   };
@@ -2667,6 +2697,15 @@ export class GameEngine {
     this.multiplayer.disconnect();
 
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('orientationchange', this.handleOrientationResize);
+    window.visualViewport?.removeEventListener('resize', this.handleResize);
+    window.screen?.orientation?.removeEventListener('change', this.handleOrientationResize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    for (const id of this.orientationTimers) {
+      clearTimeout(id);
+    }
+    this.orientationTimers = [];
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('blur', this.handleBlur);
